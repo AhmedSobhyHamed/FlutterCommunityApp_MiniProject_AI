@@ -1,30 +1,50 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
-import 'package:fluttercommunityapp_miniproject_ai/main.dart';
+import 'package:fluttercommunityapp_miniproject_ai/core/utils/validators.dart';
+import 'package:fluttercommunityapp_miniproject_ai/data/models/user_model.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  test('sign-up builder sets only the fields collected on the form', () {
+    final user = UserBuilder()
+        .setId('user-1')
+        .setFullName('Ahmed')
+        .setEmail('ahmed@email.com')
+        .build();
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
-
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
-
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    expect(user.id, 'user-1');
+    expect(user.fullName, 'Ahmed');
+    expect(user.email, 'ahmed@email.com');
+    expect(user.photoUrl, isNull);
+    expect(user.toJson()['photoUrl'], isNull);
   });
+
+  test('profile photo is applied only when the builder receives it', () {
+    final user = UserBuilder()
+        .setId('user-1')
+        .setFullName('Ahmed')
+        .setEmail('ahmed@email.com')
+        .setPhotoUrl('https://example.com/photo.jpg')
+        .build();
+
+    expect(user.photoUrl, 'https://example.com/photo.jpg');
+  });
+
+  test('full name must start with a capital letter', () {
+    expect(validateFullName('ahmed'), isNotNull);
+    expect(validateFullName('Ahmed Sobhy'), isNull);
+  });
+
+  test('email must contain @', () {
+    expect(validateEmail('ahmed.email.com'), isNotNull);
+    expect(validateEmail('ahmed@email.com'), isNull);
+  });
+
+  test(
+    'password must be at least 6 characters and confirmation must match',
+    () {
+      expect(validatePassword('12345'), isNotNull);
+      expect(validatePassword('123456'), isNull);
+      expect(validateConfirmPassword('123456', '1234567'), isNotNull);
+      expect(validateConfirmPassword('123456', '123456'), isNull);
+    },
+  );
 }
